@@ -15,10 +15,10 @@ let instance = new RazorPay({
 export const placeOrder = async (req, res) => {
     try {
         const { cartItems, paymentMethod, deliveryAddress, totalAmount } = req.body
-        if (cartItems.length == 0 || !cartItems) {
+        if (!cartItems || cartItems.length === 0) {
             return res.status(400).json({ message: "cart is empty" })
         }
-        if (!deliveryAddress.text || !deliveryAddress.latitude || !deliveryAddress.longitude) {
+        if (!deliveryAddress || !deliveryAddress.text || !deliveryAddress.latitude || !deliveryAddress.longitude) {
             return res.status(400).json({ message: "send complete deliveryAddress" })
         }
 
@@ -497,8 +497,20 @@ export const sendDeliveryOtp = async (req, res) => {
         shopOrder.deliveryOtp = otp
         shopOrder.otpExpires = Date.now() + 5 * 60 * 1000
         await order.save()
-        await sendDeliveryOtpMail(order.user, otp)
-        return res.status(200).json({ message: `Otp sent Successfuly to ${order?.user?.fullName}` })
+        // try sending mail but don't fail the whole request if mail config is missing or sending fails
+        try {
+            if (order?.user?.email && process.env.EMAIL && process.env.PASS) {
+                await sendDeliveryOtpMail(order.user, otp)
+                return res.status(200).json({ message: `Otp sent Successfuly to ${order?.user?.fullName}` })
+            } else {
+                console.warn('Mail config or user email missing. OTP saved but email not sent.')
+                return res.status(200).json({ message: `Otp saved for ${order?.user?.fullName} (email not sent)` })
+            }
+        } catch (mailErr) {
+            console.error('Error sending delivery OTP email:', mailErr)
+            console.warn(`OTP for order ${orderId} is ${otp}`)
+            return res.status(200).json({ message: `Otp saved but failed to send email: ${mailErr.message}`, otp })
+        }
     } catch (error) {
         return res.status(500).json({ message: `delivery otp error ${error}` })
     }
