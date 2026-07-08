@@ -3,10 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "start": "node index.js"
   },
-  "author": "Virtual code",
+  "author": "Shivam Kumar",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^3.0.2",
