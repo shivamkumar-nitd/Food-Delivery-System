@@ -40,33 +40,65 @@ res.cookie("token", token, {
     }
 }
 
-export const signIn=async (req,res) => {
+export const signIn = async (req, res) => {
     try {
-        const {email,password}=req.body
-        const user=await User.findOne({email})
-        if(!user){
-            return res.status(400).json({message:"User does not exist."})
-        }
-        
-     const isMatch=await bcrypt.compare(password,user.password)
-     if(!isMatch){
-         return res.status(400).json({message:"incorrect Password"})
-     }
+        console.log("========== SIGN IN REQUEST ==========");
+        console.log("Request Body:", req.body);
 
-        const token=await genToken(user._id)
-res.cookie("token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000
-});
-  
-        return res.status(200).json(user)
+        let { email, password } = req.body;
+
+        // Normalize email
+        email = email.trim().toLowerCase();
+
+        console.log("Normalized Email:", email);
+
+        const user = await User.findOne({ email });
+
+        console.log("User Found:", user);
+
+        if (!user) {
+            console.log("❌ User not found in MongoDB");
+            return res.status(400).json({
+                message: "User does not exist."
+            });
+        }
+
+        console.log("Stored Hash:", user.password);
+        console.log("Entered Password:", password);
+
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        console.log("Password Match:", isMatch);
+
+        if (!isMatch) {
+            console.log("❌ Password mismatch");
+            return res.status(400).json({
+                message: "incorrect Password"
+            });
+        }
+
+        const token = await genToken(user._id);
+
+        console.log("JWT Generated");
+
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+
+        console.log("✅ Login Successful");
+
+        return res.status(200).json(user);
 
     } catch (error) {
-        return res.status(500).json(`sign In error ${error}`)
+        console.log("SIGN IN ERROR:", error);
+        return res.status(500).json({
+            message: error.message
+        });
     }
-}
+};
 
 export const signOut=async (req,res) => {
     try {
