@@ -38,28 +38,27 @@ function SignIn() {
         }
      }
 const handleGoogleAuth = async () => {
-  const provider = new GoogleAuthProvider();
-
   try {
-    console.log("Trying Google Sign In...");
+    const provider = new GoogleAuthProvider();
 
     const result = await signInWithPopup(auth, provider);
 
-    console.log("Google User:", result.user);
+    // Firebase ID Token (used by backend to verify the user)
+    const idToken = await result.user.getIdToken();
 
     const { data } = await axios.post(
       `${serverUrl}/api/auth/google-auth`,
       {
-        email: result.user.email,
+        idToken,
       },
-      { withCredentials: true }
+      {
+        withCredentials: true,
+      }
     );
 
     dispatch(setUserData(data));
   } catch (error) {
-    console.log("Firebase Error:", error);
-    console.log("Error Code:", error.code);
-    console.log("Error Message:", error.message);
+    console.error("Google Auth Error:", error);
   }
 };
     return (
