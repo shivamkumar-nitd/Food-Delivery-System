@@ -43,12 +43,13 @@ export const placeOrder = async (req, res) => {
                 shop: shop._id,
                 owner: shop.owner._id,
                 subtotal,
-                shopOrderItems: items.map((i) => ({
-                    item: i.id,
-                    price: i.price,
-                    quantity: i.quantity,
-                    name: i.name
-                }))
+shopOrderItems: items.map((i) => ({
+    item: i.id,
+    price: i.price,
+    quantity: i.quantity,
+    name: i.name,
+    image: i.image        // <-- ADD THIS
+}))
             }
         }
         ))
