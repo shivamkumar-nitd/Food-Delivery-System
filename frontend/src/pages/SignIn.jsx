@@ -46,15 +46,16 @@ const handleGoogleAuth = async () => {
     // Firebase ID Token (used by backend to verify the user)
     const idToken = await result.user.getIdToken();
 
-    const { data } = await axios.post(
-      `${serverUrl}/api/auth/google-auth`,
-      {
-        idToken,
-      },
-      {
+const { data } = await axios.post(
+    `${serverUrl}/api/auth/google-auth`,
+    {
+        fullName: result.user.displayName,
+        email: result.user.email,
+    },
+    {
         withCredentials: true,
-      }
-    );
+    }
+);
 
     dispatch(setUserData(data));
   } catch (error) {
